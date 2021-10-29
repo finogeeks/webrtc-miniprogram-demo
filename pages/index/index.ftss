@@ -1,6 +1,7 @@
 /**index.ftss**/
 
 .my-webrtc-video {
-  width: 340px;
-  height: 210px;
+  display: block;
+  width: 680rpx;
+  height: 420rpx;
 }
