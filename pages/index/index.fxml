@@ -1,0 +1,22 @@
+<!--index.ftml-->
+<view>id:{{id}}</view>
+<view>
+  <input type="text" placeholder="对方id" value="{{remoteId}}" bindinput="remoteIdChange" />
+</view>
+
+<button bindtap="start">开始聊天</button>
+
+<view >
+  <view>local:</view>
+  <webrtc-video muted
+                class="my-webrtc-video"
+                id="localwebrtcvideo"
+                src="webrtc://{{localStreamId}}">
+  </webrtc-video>
+  <view>remote:</view>
+  <webrtc-video muted
+                class="my-webrtc-video"
+                id="remotewebrtcvideo"
+                src="webrtc://{{remoteStreamId}}">
+  </webrtc-video>
+</view>
