@@ -5,10 +5,10 @@
 </p>
 
 <p align="center"> 
-    <strong>FinClip Flutter SDK</strong></br>
+    <strong>FinClip WebRTC SDK</strong></br>
 <p>
 <p align="center"> 
-        本项目提供 webrtc 环境中小程序的体验 DEMO
+        本项目提供 WebRTC 环境中小程序的体验 DEMO
 <p>
 
 <p align="center"> 
@@ -29,6 +29,7 @@
 以下内容是您在 FinClip 进行开发与体验时，常见的问题与指引信息
 
 - [FinClip 官网](https://www.finclip.com/#/home)
+- [FinClip 博客](https://www.finclip.com/blog)
 - [示例小程序](https://www.finclip.com/#/market)
 - [文档中心](https://www.finclip.com/mop/document/)
 - [SDK 部署指南](https://www.finclip.com/mop/document/introduce/quickStart/intergration-guide.html)
