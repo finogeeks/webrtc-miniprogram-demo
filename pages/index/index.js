@@ -59,6 +59,21 @@ Page({
           })
         }
         
+        if (data.type === 'sendOffer') {
+          // 收到 sendOffer 时，表示自己是 remote 端
+          await pc1.setRemoteDescription(data.args)
+          const answer = await pc1.createAnswer()
+          sockTask.send({
+            data: JSON.stringify({
+              type: 'sendAnswer',
+              args: answer,
+              to: data.from,
+              from: this.data.connectId
+            })
+          })
+          await pc1.setLocalDescription(answer)
+        }
+        
         if (data.type === 'sendAnswer') {
           // 收到 answer 时，表示自己是 host 端
           await pc1.setRemoteDescription(data.args)
