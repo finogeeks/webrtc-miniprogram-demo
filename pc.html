@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+</head>
+
+<body>
+  <p id="id"
+     class="my-id"></p>
+  <input type="text"
+         placeholder="填写对方 id">
+  <button id="create"
+          onclick="create()">create</button>
+  <button id="start"
+          onclick="start()">call</button>
+  <button id="close"
+          onclick="close()">close</button>
+  <p>本地</p>
+  <video id="localVideo"
+         playsinline
+         autoplay
+         muted></video>
+  <p>远程</p>
+  <video id="remoteVideo"
+         playsinline
+         autoplay></video>
+
+  <script>
+
+    const id = Math.random().toString(36).slice(-4).toUpperCase()
+    let remoteId
+
+    document.getElementById('id').innerHTML = '我的 ID:' + id
+
+    let pc
+
+    let ws = new WebSocket('wss://finogeeks-tools.finogeeks.club/webrtc-server')
+    function send(data) {
+      console.log('Socket send data:', data)
+      ws.send(JSON.stringify(data))
+    }
+    ws.onopen = function (e) {
+      console.log("Socket open success")
+      send({
+        type: 'ready',
+        id
+      })
+    }
+    ws.onclose = function (e) {
+      console.log("Socket close")
+
+    }
+    ws.onerror = function (err) {
+      console.log("Socket connect error", err)
+    }
+    ws.onmessage = async function (e) {
+      let data
+      try {
+        data = JSON.parse(e.data)
+      } catch (e) {
+        data = {}
+      }
+
+      console.log('Socket get data:', data)
+      if (!remoteId) {
+        remoteId = document.querySelector('input').value = data.from
+      }
+      if (data.type === 'sendOffer') {
+        // 收到 sendOffer 时，表示自己是 remote 端
+        await pc.setRemoteDescription(data.args)
+        const answer = await pc.createAnswer()
+        send({
+          type: 'sendAnswer',
+          args: answer,
+          to: data.from,
+          from: id
+        })
+        await pc.setLocalDescription(answer)
+      }
+
+      if (data.type === 'sendAnswer') {
+        // 收到 answer 时，表示自己是 host 端
+        await pc.setRemoteDescription(data.args)
+      }
+
+      if (data.type === 'icecandidate') {
+        await pc.addIceCandidate(data.args)
+      }
+    }
+
+
+    let stream
+
+    async function init() {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+      const localVideo = document.getElementById('localVideo')
+      const remoteVideo = document.getElementById('remoteVideo')
+      // 显示本地摄像头的视频
+      localVideo.srcObject = stream;
+
+      create()
+    }
+
+    init()
+
+    function create() {
+
+      const servers = { iceServers: [{ urls: "stun:stun.stunprotocol.org" }] }
+      pc = new RTCPeerConnection(servers)
+
+      pc.addEventListener('icecandidate', e => {
+        const candidate = e.candidate || {}
+        console.log('Connection icecandidate', Object.keys(candidate).length, candidate)
+        if (candidate && candidate.sdpMid !== undefined && candidate.sdpMLineIndex !== undefined) {
+          send({
+            type: 'icecandidate',
+            args: candidate,
+            to: remoteId,
+            from: id
+          })
+        }
+      })
+
+
+      stream.getTracks().forEach(track => {
+        const res = pc.addTrack(track, stream)
+      })
+
+      pc.addEventListener('track', e => {
+        remoteVideo.srcObject = e.streams[0]
+      })
+    }
+
+    function close() {
+      pc && pc.close()
+    }
+
+
+    async function start() {
+      remoteId = document.querySelector('input').value
+      const offer = await pc.createOffer({
+        offerToReceiveAudio: 1,
+        offerToReceiveVideo: 1
+      })
+
+      await pc.setLocalDescription(offer)
+      send({
+        type: 'sendOffer',
+        args: offer,
+        to: remoteId,
+        from: id
+      })
+    }
+  </script>
+</body>
+
+</html>
